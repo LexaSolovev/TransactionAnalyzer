@@ -1,11 +1,10 @@
+import json
+
 import pytest
 from pandas import DataFrame
 
-
-@pytest.fixture
-def dataframe_for_tests():
-    return DataFrame(
-        {
+def get_data():
+    return {
             "Дата операции":[
                 "31.12.2021 16:44:00",
                 "31.12.2021 16:42:04",
@@ -97,5 +96,13 @@ def dataframe_for_tests():
                 7.07,
             ]
         }
-    )
+
+@pytest.fixture
+def dataframe_for_tests():
+    return DataFrame(get_data())
+
+@pytest.fixture
+def json_for_tests():
+    return json.loads(DataFrame(get_data()).to_json(orient="records"))
+
 
