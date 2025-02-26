@@ -1,13 +1,20 @@
 import json
 from itertools import islice
 
+from dotenv import load_dotenv
+
 import pandas as pd
 from datetime import datetime
 
 import os
-from pandas.core.interchange.dataframe_protocol import DataFrame
+
+import requests
+from pandas import DataFrame
 
 from config import PATH_DATA
+
+load_dotenv()
+API_KEY=os.getenv('EXCHANGE_RATE_API_KEY')
 
 
 def greeting(date: str) -> str:
@@ -104,11 +111,46 @@ def get_top_transactions(transactions_df: DataFrame, count: int = 5) -> list[dic
     return top
 
 
+def get_currency_rate(currency: str) -> float:
+    """Получает курс валюты от API и возвращает его в виде float"""
+
+    url = f"https://api.apilayer.com/exchangerates_data/latest?base={currency}"
+    response = requests.get(url, headers={'apikey': API_KEY})
+    response_data = json.loads(response.text)
+    rate = response_data["rates"]["RUB"]
+    return float(rate)
+
+
+def get_currencies_rates(currencies: list) -> list[dict]:
+    """
+    Получает курсы валют в виде списка словарей вида:
+    [
+        {
+          "currency": "USD",
+          "rate": 73.21
+        },
+        {
+          "currency": "EUR",
+          "rate": 87.08
+        }
+    ]
+    """
+    result =[]
+    for currency in currencies:
+        result.append(
+            {
+                "currency": currency,
+                "rate": round(get_currency_rate(currency), 2)
+            }
+        )
+    return result
+
 if __name__ == "__main__":
-     path_to_excel = os.path.join(PATH_DATA, "operations.xlsx")
-     df = get_transactions_df_from_excel(path_to_excel)
-     # cards = get_cards(get_transactions_df_from_excel(path_to_excel))
-     # print(cards)
-     top = get_top_transactions(df)
-     print(top)
+     # path_to_excel = os.path.join(PATH_DATA, "operations.xlsx")
+     # df = get_transactions_df_from_excel(path_to_excel)
+     # # cards = get_cards(get_transactions_df_from_excel(path_to_excel))
+     # # print(cards)
+     # top = get_top_transactions(df)
+     # print(top)
+     print (get_currencies_rates(['USD','EUR']))
 
