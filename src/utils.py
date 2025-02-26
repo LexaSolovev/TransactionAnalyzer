@@ -196,9 +196,7 @@ def get_stock_prices(tickers: list[str]) -> list[dict]:
             {
                 "stock": ticker,
                 "price": get_stock_price(ticker)
-
             }
-
         )
     return stock_prices
 

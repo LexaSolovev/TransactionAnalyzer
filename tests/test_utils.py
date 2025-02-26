@@ -9,7 +9,7 @@ from pandas import DataFrame
 import src
 from config import PATH_DATA
 from src.utils import greeting, get_transactions_df_from_excel, get_cards, get_top_transactions, get_currency_rate, \
-    get_currencies_rates
+    get_currencies_rates, get_stock_price, get_stock_prices
 
 
 @pytest.mark.parametrize("date, expected", [
@@ -80,5 +80,28 @@ def test_get_currencies_rates():
           "rate": 100
         }
     ]
+
+
+@patch("requests.get")
+def test_get_stock_price(mock_request):
+    mock_response = mock_request.return_value
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"data": [{"close": 100}]}
+    assert get_stock_price("AAPL") == 100
+
+
+def test_get_stock_prices():
+    src.utils.get_stock_price = Mock(return_value=100)
+    assert get_stock_prices(["AAPL", "AMZN"]) == [
+        {
+            "stock": "AAPL",
+            "price": 100
+        },
+        {
+            "stock": "AMZN",
+            "price": 100
+        }
+    ]
+
 
 
