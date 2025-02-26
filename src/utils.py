@@ -28,7 +28,7 @@ def greeting(date: str) -> str:
     10.00 - 16.00 - Добрый день
     16.00 - 22.00 - Добрый вечер
     """
-    date_obj = datetime.strptime(date, "%Y-%m-d %H:%M:%S")
+    date_obj = datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
     hour = date_obj.hour
     if hour > 21 or hour < 4:
         return "Доброй ночи!"
@@ -162,7 +162,7 @@ def get_currencies_rates(currencies: list) -> list[dict]:
 
 
 def get_stock_price(ticker: str) -> float:
-
+    """Получает последнюю цену закрытия цены акции по API и возвращает его в виде float"""
     url = "https://api.marketstack.com/v1/eod/latest"
 
     params = {
@@ -175,6 +175,34 @@ def get_stock_price(ticker: str) -> float:
         return response.json().get('data',[{}])[0].get('close')
     else:
         return 0
+
+
+def get_stock_prices(tickers: list[str]) -> list[dict]:
+    """
+    Получает список тикеров, возвращает список словарей в формате:
+    [
+        {
+          "stock": "AAPL",
+          "price": 150.12
+        },
+        {
+          "stock": "AMZN",
+          "price": 3173.18
+        }
+        ...
+    ]
+    """
+    stock_prices = []
+    for ticker in tickers:
+        stock_prices.append(
+            {
+                "stock": ticker,
+                "price": get_stock_price(ticker)
+
+            }
+
+        )
+    return stock_prices
 
 
 if __name__ == "__main__":
