@@ -1,8 +1,10 @@
 import json
+from itertools import islice
+
 import pandas as pd
 from datetime import datetime
 
-from coverage.inorout import os
+import os
 from pandas.core.interchange.dataframe_protocol import DataFrame
 
 from config import PATH_DATA
@@ -52,10 +54,10 @@ def get_cards(transactions_df: DataFrame) -> list[dict]:
         }
     ]
     """
-    cards = []
-    #transactions_df = pd.read_excel()
     filtered_status_ok = transactions_df[transactions_df["Статус"] == "OK"]
     grouped_by_cards = filtered_status_ok.groupby("Номер карты", as_index=False).sum()
+
+    cards = []
     for index, row in grouped_by_cards.iterrows():
         cards.append(
             {
@@ -68,10 +70,45 @@ def get_cards(transactions_df: DataFrame) -> list[dict]:
     return cards
 
 
+def get_top_transactions(transactions_df: DataFrame, count: int = 5) -> list[dict]:
+    """
+    Функция принимает список транзакций DataFrame и возвращает список из count транзакций вида:
+    [
+        {
+          "date": "21.12.2021",
+          "amount": 1198.23,
+          "category": "Переводы",
+          "description": "Перевод Кредитная карта. ТП 10.2 RUR"
+        },
+        {
+          "date": "20.12.2021",
+          "amount": 829.00,
+          "category": "Супермаркеты",
+          "description": "Лента"
+        }
+        ...
+    ]
+    """
+    filtered_status_ok = transactions_df[transactions_df["Статус"] == "OK"]
+    sorted_by_amount = filtered_status_ok.sort_values("Сумма операции с округлением", ascending=False)
+    top = []
+    for index, row in islice(sorted_by_amount.iterrows(), count):
+        top.append(
+            {
+                "date": row["Дата платежа"],
+                "amount": round(float(row['Сумма операции с округлением']),2),
+                "category": row["Категория"],
+                "description": row["Описание"]
+            }
+        )
+    return top
+
 
 if __name__ == "__main__":
      path_to_excel = os.path.join(PATH_DATA, "operations.xlsx")
-     cards = get_cards(get_transactions_df_from_excel(path_to_excel))
-     for card in cards:
-        print(card)
+     df = get_transactions_df_from_excel(path_to_excel)
+     # cards = get_cards(get_transactions_df_from_excel(path_to_excel))
+     # print(cards)
+     top = get_top_transactions(df)
+     print(top)
 
