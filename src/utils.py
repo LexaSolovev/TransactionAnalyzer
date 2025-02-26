@@ -43,7 +43,6 @@ def greeting(date: str) -> str:
 def get_transactions_df_from_excel(path_to_excel: str) -> DataFrame:
     """Функция принимает путь до EXCEL файла и возвращает данные о транзакциях в виде списка словарей"""
 
-    date_parse = lambda x: datetime.strptime(x, '%d.%m.%Y %H:%M:%S')
     transactions_df = pd.read_excel(path_to_excel, parse_dates=["Дата операции"], date_format='%d.%m.%Y %H:%M:%S')
     return transactions_df
 
@@ -55,7 +54,7 @@ def filter_transactions_by_date(transactions: DataFrame, date_str: str) -> DataF
     """
     date_end = datetime.strptime(date_str, "%d.%m.%Y")
     date_begin = datetime(date_end.year, date_end.month, 1)
-    filtered = transactions[(transactions["Дата операции"]>= date_begin)&(transactions["Дата операции"] <= date_end)]
+    filtered = transactions[(transactions["Дата операции"] >= date_begin)&(transactions["Дата операции"] <= date_end)]
     return filtered
 
 
