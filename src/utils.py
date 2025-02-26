@@ -55,14 +55,17 @@ def get_transactions_df_from_excel(path_to_excel: str) -> DataFrame:
     return transactions_df
 
 
-def filter_transactions_by_date(transactions: DataFrame, date_str: str) -> DataFrame:
+def filter_transactions_by_date(transactions: DataFrame, date_str: str, date_begin: str=None) -> DataFrame:
     """
     Функция фильтрует transactions: DateFrame по полю "Дата операции" в интервале
     от начало месяца до date_str в формате DD.MM.YYYY
     """
     date_end = datetime.strptime(date_str, "%d.%m.%Y")
     date_end = date_end.replace(hour=23, minute=59, second=59)
-    date_begin = datetime(date_end.year, date_end.month, 1)
+    if not date_begin:
+        date_begin = datetime(date_end.year, date_end.month, 1)
+    else:
+        date_begin = datetime.strptime(date_begin, "%d.%m.%Y")
     filtered = transactions[(transactions["Дата операции"] >= date_begin)&(transactions["Дата операции"] <= date_end)]
     return filtered
 
