@@ -1,14 +1,10 @@
-import os.path
-from datetime import datetime
 from unittest.mock import patch, Mock
 
 import pytest
-import requests
-from pandas import DataFrame
+
 
 import src
-from config import PATH_DATA
-from src.utils import greeting, get_transactions_df_from_excel, get_cards, get_top_transactions, get_currency_rate, \
+from src.utils import greeting, get_cards, get_top_transactions, get_currency_rate, \
     get_currencies_rates, get_stock_price, get_stock_prices
 
 

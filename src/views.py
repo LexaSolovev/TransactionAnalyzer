@@ -1,6 +1,10 @@
 import json
+import os
 from datetime import datetime
-from utils import *
+
+from config import PATH_DATA
+import src.utils
+
 
 def get_response(date: str) -> dict:
     """
@@ -11,8 +15,8 @@ def get_response(date: str) -> dict:
 
     path_to_excel = os.path.join(PATH_DATA,"operations.xlsx")
     path_to_user_settings = os.path.join(PATH_DATA, "user_settings.json")
-    transactions_df = get_transactions_df_from_excel(path_to_excel)
-    filtered_trs_by_date = filter_transactions_by_date(transactions_df, date_obj.strftime("%d.%m.%Y"))
+    transactions_df = src.utils.get_transactions_df_from_excel(path_to_excel)
+    filtered_trs_by_date = src.utils.filter_transactions_by_date(transactions_df, date_obj.strftime("%d.%m.%Y"))
 
     current_date = datetime.now()
     with open(path_to_user_settings) as f:
@@ -21,11 +25,11 @@ def get_response(date: str) -> dict:
         user_stocks = user_settings.get("user_stocks")
 
     result = {
-        "greeting": greeting(current_date.strftime("%Y-%m-%d %H:%M:%S")),
-        "cards": get_cards(filtered_trs_by_date),
-        "top_transactions": get_top_transactions(filtered_trs_by_date),
-        "currency_rates": get_currencies_rates(user_currencies),
-        "stock_prices": get_stock_prices(user_stocks)
+        "greeting": src.utils.greeting(current_date.strftime("%Y-%m-%d %H:%M:%S")),
+        "cards": src.utils.get_cards(filtered_trs_by_date),
+        "top_transactions": src.utils.get_top_transactions(filtered_trs_by_date),
+        "currency_rates": src.utils.get_currencies_rates(user_currencies),
+        "stock_prices": src.utils.get_stock_prices(user_stocks)
     }
     return result
 
