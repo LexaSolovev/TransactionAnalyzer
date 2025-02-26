@@ -1,5 +1,5 @@
 import json
-from calendar import month
+
 from itertools import islice
 
 from dotenv import load_dotenv
