@@ -76,7 +76,7 @@ def get_cards(transactions_df: DataFrame) -> list[dict]:
     ]
     """
     filtered_status_ok = transactions_df[transactions_df["Статус"] == "OK"]
-    grouped_by_cards = filtered_status_ok.groupby("Номер карты", as_index=False).sum()
+    grouped_by_cards = filtered_status_ok[["Номер карты", "Кэшбэк","Сумма операции с округлением"]].groupby("Номер карты", as_index=False).sum()
 
     cards = []
     for index, row in grouped_by_cards.iterrows():
