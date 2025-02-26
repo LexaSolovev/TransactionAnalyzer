@@ -48,6 +48,6 @@ def spending_by_category(transactions: pd.DataFrame, category: str, date: Option
 
 if __name__ == "__main__":
     path_to_excel = os.path.join(PATH_DATA, "operations.xlsx")
-    transactions = pd.read_excel(path_to_excel, parse_dates=True, date_format='%d.%m.%Y %H:%M:%S')
-    result = spending_by_category(transactions, "Супермаркеты", "31.12.2021")
-    print(result)
+    transactions_df = pd.read_excel(path_to_excel, parse_dates=True, date_format='%d.%m.%Y %H:%M:%S')
+    spent = spending_by_category(transactions_df, "Супермаркеты", "31.12.2021")
+    print(spent)
