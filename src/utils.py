@@ -15,7 +15,8 @@ from pandas import DataFrame
 from config import PATH_DATA
 
 load_dotenv()
-API_KEY=os.getenv('EXCHANGE_RATE_API_KEY')
+EXCHANGE_RATE_API_KEY = os.getenv('EXCHANGE_RATE_API_KEY')
+MARKET_STACK_API_KEY = os.getenv('MARKET_STACK_API_KEY')
 
 
 def greeting(date: str) -> str:
@@ -108,6 +109,7 @@ def get_top_transactions(transactions_df: DataFrame, count: int = 5) -> list[dic
         }
         ...
     ]
+    При этом учитываются только транзакции, завершенные успешно (Статус=ОК)
     """
     filtered_status_ok = transactions_df[transactions_df["Статус"] == "OK"]
     sorted_by_amount = filtered_status_ok.sort_values("Сумма операции с округлением", ascending=False)
@@ -128,7 +130,7 @@ def get_currency_rate(currency: str) -> float:
     """Получает курс валюты от API и возвращает его в виде float"""
 
     url = f"https://api.apilayer.com/exchangerates_data/latest?base={currency}"
-    response = requests.get(url, headers={'apikey': API_KEY})
+    response = requests.get(url, headers={'apikey': EXCHANGE_RATE_API_KEY})
     response_data = json.loads(response.text)
     rate = response_data["rates"]["RUB"]
     return float(rate)
@@ -158,13 +160,31 @@ def get_currencies_rates(currencies: list) -> list[dict]:
         )
     return result
 
+
+def get_stock_price(ticker: str) -> float:
+
+    url = "https://api.marketstack.com/v1/eod/latest"
+
+    params = {
+        "access_key": MARKET_STACK_API_KEY,
+        "symbols": ticker
+    }
+
+    response = requests.get(url, params=params)
+    if response.status_code == 200:
+        return response.json().get('data',[{}])[0].get('close')
+    else:
+        return 0
+
+
 if __name__ == "__main__":
-     path_to_excel = os.path.join(PATH_DATA, "operations.xlsx")
-     df = get_transactions_df_from_excel(path_to_excel)
-     # # cards = get_cards(get_transactions_df_from_excel(path_to_excel))
-     # # print(cards)
-     # top = get_top_transactions(df)
-     # print(top)
-     # print (get_currencies_rates(['USD','EUR']))
-     filtered = filter_transactions_by_date(df, "28.12.2021")
-     print(filtered)
+     # path_to_excel = os.path.join(PATH_DATA, "operations.xlsx")
+     # df = get_transactions_df_from_excel(path_to_excel)
+     # # # cards = get_cards(get_transactions_df_from_excel(path_to_excel))
+     # # # print(cards)
+     # # top = get_top_transactions(df)
+     # # print(top)
+     # # print (get_currencies_rates(['USD','EUR']))
+     # filtered = filter_transactions_by_date(df, "28.12.2021")
+     # print(filtered)
+     print(get_stock_price("AAPL"))
