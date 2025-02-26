@@ -66,6 +66,7 @@ def filter_transactions_by_date(transactions: DataFrame, date_str: str, date_beg
         date_begin = datetime(date_end.year, date_end.month, 1)
     else:
         date_begin = datetime.strptime(date_begin, "%d.%m.%Y")
+    transactions["Дата операции"] = pd.to_datetime(transactions["Дата операции"], dayfirst=True)
     filtered = transactions[(transactions["Дата операции"] >= date_begin)&(transactions["Дата операции"] <= date_end)]
     return filtered
 
