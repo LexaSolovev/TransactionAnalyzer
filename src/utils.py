@@ -1,4 +1,5 @@
 import json
+from calendar import month
 from itertools import islice
 
 from dotenv import load_dotenv
@@ -41,8 +42,22 @@ def greeting(date: str) -> str:
 def get_transactions_df_from_excel(path_to_excel: str) -> DataFrame:
     """Функция принимает путь до EXCEL файла и возвращает данные о транзакциях в виде списка словарей"""
 
-    transactions_df = pd.read_excel(path_to_excel)
+    date_parse = lambda x: datetime.strptime(x, '%d.%m.%Y %H:%M:%S')
+    transactions_df = pd.read_excel(path_to_excel, parse_dates=["Дата операции"], date_parser=date_parse)
     return transactions_df
+
+
+def filter_transactions_by_date(transactions: DataFrame, date_str: str) -> DataFrame:
+    """
+    Функция фильтрует transactions: DateFrame по полю "Дата Платежа" в интервале
+    от начало месяца до date_str в формате DD.MM.YYYY
+    """
+    date_end = datetime.strptime(date_str, "%d.%m.%Y")
+    date_begin = datetime(date_end.year, date_end.month, 1)
+    # day = int(date_str[:2])
+    # dates_include = [("0"+str(d))[-2:]+month_year for d in range(1, day+1)]
+    filtered = transactions[(transactions["Дата операции"]>= date_begin)&(transactions["Дата операции"] <= date_end)]
+    return filtered
 
 
 def get_cards(transactions_df: DataFrame) -> list[dict]:
@@ -146,11 +161,12 @@ def get_currencies_rates(currencies: list) -> list[dict]:
     return result
 
 if __name__ == "__main__":
-     # path_to_excel = os.path.join(PATH_DATA, "operations.xlsx")
-     # df = get_transactions_df_from_excel(path_to_excel)
+     path_to_excel = os.path.join(PATH_DATA, "operations.xlsx")
+     df = get_transactions_df_from_excel(path_to_excel)
      # # cards = get_cards(get_transactions_df_from_excel(path_to_excel))
      # # print(cards)
      # top = get_top_transactions(df)
      # print(top)
-     print (get_currencies_rates(['USD','EUR']))
-
+     # print (get_currencies_rates(['USD','EUR']))
+     filtered = filter_transactions_by_date(df, "28.12.2021")
+     print(filtered)
