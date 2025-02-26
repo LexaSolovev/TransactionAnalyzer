@@ -1,4 +1,3 @@
-import pytest
 
 from src.services import get_best_categories
 
