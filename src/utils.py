@@ -1,3 +1,4 @@
+import logging
 import json
 
 from itertools import islice
@@ -12,11 +13,18 @@ import os
 import requests
 from pandas import DataFrame
 
-from config import PATH_DATA
-
 load_dotenv()
 EXCHANGE_RATE_API_KEY = os.getenv('EXCHANGE_RATE_API_KEY')
 MARKET_STACK_API_KEY = os.getenv('MARKET_STACK_API_KEY')
+
+from config import PATH_LOGS
+
+api_logger = logging.getLogger("api_loger")
+file_handler = logging.FileHandler(os.path.join(PATH_LOGS, "api_logs.log"))
+file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s: %(message)s")
+file_handler.setFormatter(file_formatter)
+api_logger.addHandler(file_handler)
+api_logger.setLevel(logging.INFO)
 
 
 def greeting(date: str) -> str:
@@ -129,7 +137,12 @@ def get_currency_rate(currency: str) -> float:
     """Получает курс валюты от API и возвращает его в виде float"""
 
     url = f"https://api.apilayer.com/exchangerates_data/latest?base={currency}"
-    response = requests.get(url, headers={'apikey': EXCHANGE_RATE_API_KEY}).json()
+    api_logger.info(f"Вызов метода GET по url = {url}")
+    try:
+        response = requests.get(url, headers={'apikey': EXCHANGE_RATE_API_KEY}).json()
+    except Exception as ex:
+        api_logger.error(f"При выполнения запроса возникла ошибка: {ex}", exc_info=True)
+
     rate = response["rates"]["RUB"]
     return float(rate)
 
@@ -167,8 +180,12 @@ def get_stock_price(ticker: str) -> float:
         "access_key": MARKET_STACK_API_KEY,
         "symbols": ticker
     }
+    api_logger.info(f"Вызов метода GET по url = {url}")
+    try:
+        response = requests.get(url, params=params)
+    except Exception as ex:
+        api_logger.error(f"При выполнения запроса возникла ошибка: {ex}", exc_info=True)
 
-    response = requests.get(url, params=params)
     if response.status_code == 200:
         return response.json().get('data',[{}])[0].get('close')
     else:
