@@ -43,7 +43,7 @@ def get_transactions_df_from_excel(path_to_excel: str) -> DataFrame:
     """Функция принимает путь до EXCEL файла и возвращает данные о транзакциях в виде списка словарей"""
 
     date_parse = lambda x: datetime.strptime(x, '%d.%m.%Y %H:%M:%S')
-    transactions_df = pd.read_excel(path_to_excel, parse_dates=["Дата операции"], date_parser=date_parse)
+    transactions_df = pd.read_excel(path_to_excel, parse_dates=["Дата операции"], date_format='%d.%m.%Y %H:%M:%S')
     return transactions_df
 
 
