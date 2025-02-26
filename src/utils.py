@@ -129,9 +129,8 @@ def get_currency_rate(currency: str) -> float:
     """Получает курс валюты от API и возвращает его в виде float"""
 
     url = f"https://api.apilayer.com/exchangerates_data/latest?base={currency}"
-    response = requests.get(url, headers={'apikey': EXCHANGE_RATE_API_KEY})
-    response_data = json.loads(response.text)
-    rate = response_data["rates"]["RUB"]
+    response = requests.get(url, headers={'apikey': EXCHANGE_RATE_API_KEY}).json()
+    rate = response["rates"]["RUB"]
     return float(rate)
 
 

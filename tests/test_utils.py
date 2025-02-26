@@ -1,11 +1,15 @@
 import os.path
 from datetime import datetime
+from unittest.mock import patch, Mock
 
 import pytest
+import requests
 from pandas import DataFrame
 
+import src
 from config import PATH_DATA
-from src.utils import greeting, get_transactions_df_from_excel, get_cards, get_top_transactions
+from src.utils import greeting, get_transactions_df_from_excel, get_cards, get_top_transactions, get_currency_rate, \
+    get_currencies_rates
 
 
 @pytest.mark.parametrize("date, expected", [
@@ -56,5 +60,25 @@ def test_get_top_transactions(dataframe_for_tests):
         }
     ]
 
+@patch("requests.get")
+def test_get_currency_rate(mock_request):
+    mock_response = mock_request.return_value
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"rates": {"RUB": 100}}
+    assert get_currency_rate("USD") == 100
 
-def
+
+def test_get_currencies_rates():
+    src.utils.get_currency_rate = Mock(return_value=100)
+    assert get_currencies_rates(["USD", "EUR"]) == [
+        {
+          "currency": "USD",
+          "rate": 100
+        },
+        {
+          "currency": "EUR",
+          "rate": 100
+        }
+    ]
+
+
