@@ -1,8 +1,17 @@
 import calendar
-
+import logging
 import pandas as pd
 from datetime import datetime
 from src.utils import filter_transactions_by_date
+
+from config import PATH_LOGS
+
+services_logger = logging.getLogger("services")
+file_handler = logging.FileHandler(os.path.join(PATH_LOGS, "services.log"))
+file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s: %(message)s")
+file_handler.setFormatter(file_formatter)
+services_logger.addHandler(file_handler)
+services_logger.setLevel(logging.INFO)
 
 def get_best_categories(data: list[dict], year: int, month: int) -> dict:
     """
@@ -21,7 +30,10 @@ def get_best_categories(data: list[dict], year: int, month: int) -> dict:
     _,last_day_month = calendar.monthrange(year, month)
     date_str = datetime(year=year, month=month, day=last_day_month).strftime("%d.%m.%Y")
     df["Дата операции"] = pd.to_datetime(df["Дата операции"], dayfirst=True)
+
+    services_logger.info("Запущена фильтрация данных по дате filter_transactions_by_date")
     filtered = filter_transactions_by_date(df, date_str)
+    services_logger.info("Фильтрация закончена.")
     grouped_by_categories = filtered[
         [
             "Категория",
