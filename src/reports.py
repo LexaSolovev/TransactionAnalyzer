@@ -6,6 +6,7 @@ from typing import Optional
 import pandas as pd
 from dateutil.relativedelta import relativedelta
 
+
 from config import PATH_DATA, PATH_REPORTS
 from src.utils import filter_transactions_by_date
 
@@ -15,7 +16,7 @@ def report_to_file(file_name :str="default_report"):
         def wrapper(*args,**kwargs):
             result = func(*args, **kwargs)
             path_to_report = os.path.join(PATH_REPORTS, file_name + ".xlsx")
-            result.to_excel(path_to_report)
+            result.to_excel(path_to_report, index=False)
             return result
         return wrapper
     return inner
