@@ -1,4 +1,5 @@
 import os
+import logging
 from datetime import datetime
 from functools import wraps
 from typing import Optional
@@ -6,9 +7,16 @@ from typing import Optional
 import pandas as pd
 from dateutil.relativedelta import relativedelta
 
-
 from config import PATH_DATA, PATH_REPORTS
 from src.utils import filter_transactions_by_date
+from config import PATH_LOGS
+
+reports_logger = logging.getLogger("report_loger")
+file_handler = logging.FileHandler(os.path.join(PATH_LOGS, "reports.log"))
+file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s: %(message)s")
+file_handler.setFormatter(file_formatter)
+reports_logger.addHandler(file_handler)
+reports_logger.setLevel(logging.INFO)
 
 def report_to_file(file_name :str="default_report"):
     def inner(func):
@@ -17,6 +25,7 @@ def report_to_file(file_name :str="default_report"):
             result = func(*args, **kwargs)
             path_to_report = os.path.join(PATH_REPORTS, file_name + ".xlsx")
             result.to_excel(path_to_report, index=False)
+            reports_logger.info(f"Отчет записан в файл: {path_to_report}")
             return result
         return wrapper
     return inner
@@ -29,6 +38,7 @@ def spending_by_category(transactions: pd.DataFrame, category: str, date: Option
     Возвращает траты по заданной категории за последние три месяца (от переданной даты), если дата не передана
     то последние три месяца от текущей даты
     """
+    reports_logger.info(f"Запуск отчета Траты по категории - {category}.")
     if not date:
         date_end = datetime.now()
     else:

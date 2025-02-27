@@ -1,11 +1,12 @@
 import json
 import os
 
-import pytest
 
 from config import PATH_DATA, PATH_REPORTS
 from src.reports import report_to_file, spending_by_category
 import pandas as pd
+
+
 
 def test_report_to_file():
     @report_to_file("test_decorator")
