@@ -1,18 +1,17 @@
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
 
 import pytest
 
-
 import src
-from src.utils import greeting, get_cards, get_top_transactions, get_currency_rate, \
-    get_currencies_rates, get_stock_price, get_stock_prices
+from src.utils import (get_cards, get_currencies_rates, get_currency_rate, get_stock_price, get_stock_prices,
+                       get_top_transactions, greeting)
 
 
 @pytest.mark.parametrize("date, expected", [
-    ("2025-02-01 01:02:00","Доброй ночи!"),
-    ("2025-02-01 09:02:00","Доброе утро!"),
-    ("2025-02-01 11:00:00","Добрый день!"),
-    ("2025-02-01 17:02:00","Добрый вечер!")
+    ("2025-02-01 01:02:00", "Доброй ночи!"),
+    ("2025-02-01 09:02:00", "Доброе утро!"),
+    ("2025-02-01 11:00:00", "Добрый день!"),
+    ("2025-02-01 17:02:00", "Добрый вечер!")
 ])
 def test_greeting(date, expected):
     assert greeting(date) == expected
@@ -56,6 +55,7 @@ def test_get_top_transactions(dataframe_for_tests):
         }
     ]
 
+
 @patch("requests.get")
 def test_get_currency_rate(mock_request):
     mock_response = mock_request.return_value
@@ -98,6 +98,3 @@ def test_get_stock_prices():
             "price": 100
         }
     ]
-
-
-

@@ -1,11 +1,10 @@
 import json
 import os
 
+import pandas as pd
 
 from config import PATH_DATA, PATH_REPORTS
 from src.reports import report_to_file, spending_by_category
-import pandas as pd
-
 
 
 def test_report_to_file():
@@ -42,4 +41,3 @@ def test_spending_by_category(dataframe_for_tests):
                 "Округление на инвесткопилку": 0,
                 "Сумма операции с округлением": 564.00
             }]
-

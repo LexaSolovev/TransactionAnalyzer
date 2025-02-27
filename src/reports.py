@@ -1,5 +1,5 @@
-import os
 import logging
+import os
 from datetime import datetime
 from functools import wraps
 from typing import Optional
@@ -7,9 +7,8 @@ from typing import Optional
 import pandas as pd
 from dateutil.relativedelta import relativedelta
 
-from config import PATH_DATA, PATH_REPORTS
+from config import PATH_DATA, PATH_LOGS, PATH_REPORTS
 from src.utils import filter_transactions_by_date
-from config import PATH_LOGS
 
 reports_logger = logging.getLogger("report_loger")
 file_handler = logging.FileHandler(os.path.join(PATH_LOGS, "reports.log"))
@@ -18,10 +17,11 @@ file_handler.setFormatter(file_formatter)
 reports_logger.addHandler(file_handler)
 reports_logger.setLevel(logging.INFO)
 
-def report_to_file(file_name :str="default_report"):
+
+def report_to_file(file_name: str = "default_report"):
     def inner(func):
         @wraps(func)
-        def wrapper(*args,**kwargs):
+        def wrapper(*args, **kwargs):
             result = func(*args, **kwargs)
             path_to_report = os.path.join(PATH_REPORTS, file_name + ".xlsx")
             result.to_excel(path_to_report, index=False)
@@ -56,8 +56,8 @@ def spending_by_category(transactions: pd.DataFrame, category: str, date: Option
     return filter_by_category
 
 
-
 if __name__ == "__main__":
+    # pragma: no cover
     path_to_excel = os.path.join(PATH_DATA, "operations.xlsx")
     transactions_df = pd.read_excel(path_to_excel, parse_dates=True, date_format='%d.%m.%Y %H:%M:%S')
     spent = spending_by_category(transactions_df, "Супермаркеты", "31.12.2021")

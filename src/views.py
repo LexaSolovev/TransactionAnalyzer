@@ -2,8 +2,8 @@ import json
 import os
 from datetime import datetime
 
-from config import PATH_DATA
 import src.utils
+from config import PATH_DATA
 
 
 def get_response(date: str) -> dict:
@@ -13,7 +13,7 @@ def get_response(date: str) -> dict:
     """
     date_obj = datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
 
-    path_to_excel = os.path.join(PATH_DATA,"operations.xlsx")
+    path_to_excel = os.path.join(PATH_DATA, "operations.xlsx")
     path_to_user_settings = os.path.join(PATH_DATA, "user_settings.json")
     transactions_df = src.utils.get_transactions_df_from_excel(path_to_excel)
     filtered_trs_by_date = src.utils.filter_transactions_by_date(transactions_df, date_obj.strftime("%d.%m.%Y"))
@@ -33,8 +33,6 @@ def get_response(date: str) -> dict:
     }
     return result
 
+
 if __name__ == "__main__":
     print(get_response("2021-12-30 00:00:00"))
-
-
-

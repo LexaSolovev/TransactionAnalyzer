@@ -1,23 +1,17 @@
 import logging
-import json
-
+import os
+from datetime import datetime
 from itertools import islice
 
-from dotenv import load_dotenv
-
 import pandas as pd
-from datetime import datetime
-
-import os
-
 import requests
+from dotenv import load_dotenv
 from pandas import DataFrame
+from config import PATH_LOGS, PATH_DATA
 
 load_dotenv()
 EXCHANGE_RATE_API_KEY = os.getenv('EXCHANGE_RATE_API_KEY')
 MARKET_STACK_API_KEY = os.getenv('MARKET_STACK_API_KEY')
-
-from config import PATH_LOGS
 
 api_logger = logging.getLogger("api_loger")
 file_handler = logging.FileHandler(os.path.join(PATH_LOGS, "api_logs.log"))
@@ -55,7 +49,7 @@ def get_transactions_df_from_excel(path_to_excel: str) -> DataFrame:
     return transactions_df
 
 
-def filter_transactions_by_date(transactions: DataFrame, date_str: str, date_begin: str=None) -> DataFrame:
+def filter_transactions_by_date(transactions: DataFrame, date_str: str, date_begin: str = None) -> DataFrame:
     """
     Функция фильтрует transactions: DateFrame по полю "Дата операции" в интервале
     от начало месяца до date_str в формате DD.MM.YYYY
@@ -67,7 +61,10 @@ def filter_transactions_by_date(transactions: DataFrame, date_str: str, date_beg
     else:
         date_begin = datetime.strptime(date_begin, "%d.%m.%Y")
     transactions["Дата операции"] = pd.to_datetime(transactions["Дата операции"], dayfirst=True)
-    filtered = transactions[(transactions["Дата операции"] >= date_begin)&(transactions["Дата операции"] <= date_end)]
+    filtered = transactions[
+        (transactions["Дата операции"] >= date_begin) &
+        (transactions["Дата операции"] <= date_end)
+    ]
     return filtered
 
 
@@ -88,14 +85,15 @@ def get_cards(transactions_df: DataFrame) -> list[dict]:
     ]
     """
     filtered_status_ok = transactions_df[transactions_df["Статус"] == "OK"]
-    grouped_by_cards = filtered_status_ok[["Номер карты", "Кэшбэк","Сумма операции с округлением"]].groupby("Номер карты", as_index=False).sum()
+    grouped_by_cards = filtered_status_ok[["Номер карты", "Кэшбэк", "Сумма операции с округлением"]].groupby(
+        "Номер карты", as_index=False).sum()
 
     cards = []
     for index, row in grouped_by_cards.iterrows():
         cards.append(
             {
                 "last_digits": row['Номер карты'][1:],
-                "total_spent": round(float(row['Сумма операции с округлением']),2),
+                "total_spent": round(float(row['Сумма операции с округлением']), 2),
                 "cashback": row["Кэшбэк"]
             }
         )
@@ -130,7 +128,7 @@ def get_top_transactions(transactions_df: DataFrame, count: int = 5) -> list[dic
         top.append(
             {
                 "date": row["Дата платежа"],
-                "amount": round(float(row['Сумма операции с округлением']),2),
+                "amount": round(float(row['Сумма операции с округлением']), 2),
                 "category": row["Категория"],
                 "description": row["Описание"]
             }
@@ -166,7 +164,8 @@ def get_currencies_rates(currencies: list) -> list[dict]:
         }
     ]
     """
-    result =[]
+
+    result = []
     for currency in currencies:
         result.append(
             {
@@ -192,7 +191,7 @@ def get_stock_price(ticker: str) -> float:
         api_logger.error(f"При выполнения запроса возникла ошибка: {ex}", exc_info=True)
 
     if response.status_code == 200:
-        return response.json().get('data',[{}])[0].get('close')
+        return response.json().get('data', [{}])[0].get('close')
     else:
         return 0
 
@@ -224,13 +223,13 @@ def get_stock_prices(tickers: list[str]) -> list[dict]:
 
 
 if __name__ == "__main__":
-     # path_to_excel = os.path.join(PATH_DATA, "operations.xlsx")
-     # df = get_transactions_df_from_excel(path_to_excel)
-     # # # cards = get_cards(get_transactions_df_from_excel(path_to_excel))
-     # # # print(cards)
-     # # top = get_top_transactions(df)
-     # # print(top)
-     # # print (get_currencies_rates(['USD','EUR']))
-     # filtered = filter_transactions_by_date(df, "28.12.2021")
-     # print(filtered)
-     print(get_stock_price("AAPL"))
+    path_to_excel = os.path.join(PATH_DATA, "operations.xlsx")
+    df = get_transactions_df_from_excel(path_to_excel)
+    cards = get_cards(get_transactions_df_from_excel(path_to_excel))
+    print(cards)
+    top = get_top_transactions(df)
+    print(top)
+    print(get_currencies_rates(['USD', 'EUR']))
+    filtered = filter_transactions_by_date(df, "28.12.2021")
+    print(filtered)
+    print(get_stock_price("AAPL"))
