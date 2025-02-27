@@ -41,7 +41,7 @@ def spending_by_category(transactions: pd.DataFrame, category: str, date: Option
         date_end.strftime("%d.%m.%Y"),
         date_begin.strftime("%d.%m.%Y")
     )
-    filter_by_category = filtered_by_date[filtered_by_date["Категория"] == category]
+    filter_by_category = filtered_by_date[filtered_by_date["Категория"] == category].copy()
     filter_by_category["Дата операции"] = filter_by_category["Дата операции"].dt.strftime('%d.%m.%Y %H:%M:%S')
     return filter_by_category
 
