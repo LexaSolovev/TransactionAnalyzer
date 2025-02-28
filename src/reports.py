@@ -49,7 +49,7 @@ def spending_by_category(transactions: pd.DataFrame, category: str, date: Option
     else:
         date_end = datetime.strptime(date, "%d.%m.%Y")
 
-    date_begin = date_end + relativedelta(months=-3)
+    date_begin = date_end - relativedelta(months=3)
 
     filtered_by_date = filter_transactions_by_date(
         transactions,
