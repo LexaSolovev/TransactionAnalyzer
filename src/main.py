@@ -10,6 +10,9 @@ from src.views import get_response
 
 
 def main():
+    """
+    Функция демонстрирующая основные возможности проекта.
+    """
     path_to_excel = os.path.join(PATH_DATA, "operations.xlsx")
     df = pd.read_excel(path_to_excel, parse_dates=True, date_format='%d.%m.%Y %H:%M:%S')
     data_json = json.loads(df.to_json(orient="records"))
