@@ -7,7 +7,8 @@ import pandas as pd
 import requests
 from dotenv import load_dotenv
 from pandas import DataFrame
-from config import PATH_LOGS, PATH_DATA
+
+from config import PATH_DATA, PATH_LOGS
 
 load_dotenv()
 EXCHANGE_RATE_API_KEY = os.getenv('EXCHANGE_RATE_API_KEY')

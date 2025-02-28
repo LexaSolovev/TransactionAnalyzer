@@ -3,10 +3,7 @@ import logging
 import os
 from datetime import datetime
 
-import pandas as pd
-
 from config import PATH_LOGS
-from src.utils import filter_transactions_by_date
 
 services_logger = logging.getLogger("services")
 file_handler = logging.FileHandler(os.path.join(PATH_LOGS, "services.log"))
