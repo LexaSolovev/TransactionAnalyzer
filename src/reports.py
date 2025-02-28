@@ -19,6 +19,11 @@ reports_logger.setLevel(logging.INFO)
 
 
 def report_to_file(file_name: str = "default_report"):
+    """
+    Декоратор позволяющий записывать отчеты в файл формата *.xlsx.
+    Файл по умолчанию - default_report.xlsx
+    Все отчеты сохраняются в директории reports/
+    """
     def inner(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
