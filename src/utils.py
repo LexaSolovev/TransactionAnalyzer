@@ -13,12 +13,12 @@ load_dotenv()
 EXCHANGE_RATE_API_KEY = os.getenv('EXCHANGE_RATE_API_KEY')
 MARKET_STACK_API_KEY = os.getenv('MARKET_STACK_API_KEY')
 
-api_logger = logging.getLogger("api_loger")
-file_handler = logging.FileHandler(os.path.join(PATH_LOGS, "api_logs.log"))
+utils_logger = logging.getLogger("utils_loger")
+file_handler = logging.FileHandler(os.path.join(PATH_LOGS, "utils.log"))
 file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s: %(message)s")
 file_handler.setFormatter(file_formatter)
-api_logger.addHandler(file_handler)
-api_logger.setLevel(logging.INFO)
+utils_logger.addHandler(file_handler)
+utils_logger.setLevel(logging.INFO)
 
 
 def greeting(date: str) -> str:
@@ -30,8 +30,10 @@ def greeting(date: str) -> str:
     10.00 - 16.00 - Добрый день
     16.00 - 22.00 - Добрый вечер
     """
+    utils_logger.info("Запуск функции greeting.")
     date_obj = datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
     hour = date_obj.hour
+    utils_logger.info("Функция greeting выполнена успешно.")
     if hour > 21 or hour < 4:
         return "Доброй ночи!"
     elif 3 < hour < 10:
@@ -44,8 +46,9 @@ def greeting(date: str) -> str:
 
 def get_transactions_df_from_excel(path_to_excel: str) -> DataFrame:
     """Функция принимает путь до EXCEL файла и возвращает данные о транзакциях в виде списка словарей"""
-
+    utils_logger.info(f"Начало чтения данных из файла: {path_to_excel}")
     transactions_df = pd.read_excel(path_to_excel, parse_dates=["Дата операции"], date_format='%d.%m.%Y %H:%M:%S')
+    utils_logger.info(f"Чтение данных из файла: {path_to_excel} выполнено успешно.")
     return transactions_df
 
 
@@ -54,6 +57,7 @@ def filter_transactions_by_date(transactions: DataFrame, date_str: str, date_beg
     Функция фильтрует transactions: DateFrame по полю "Дата операции" в интервале
     от начало месяца до date_str в формате DD.MM.YYYY
     """
+    utils_logger.info(f"Запуск функции filter_transactions_by_date")
     date_end = datetime.strptime(date_str, "%d.%m.%Y")
     date_end = date_end.replace(hour=23, minute=59, second=59)
     if not date_begin:
@@ -65,6 +69,7 @@ def filter_transactions_by_date(transactions: DataFrame, date_str: str, date_beg
         (transactions["Дата операции"] >= date_begin) &
         (transactions["Дата операции"] <= date_end)
     ]
+    utils_logger.info(f"Функция filter_transactions_by_date выполнена успешна.")
     return filtered
 
 
@@ -84,6 +89,7 @@ def get_cards(transactions_df: DataFrame) -> list[dict]:
         }
     ]
     """
+    utils_logger.info(f"Запуск функции get_cards")
     filtered_valid = transactions_df[
         (transactions_df["Статус"] == "OK") &
         (transactions_df["Сумма операции"] < 0)
@@ -100,7 +106,7 @@ def get_cards(transactions_df: DataFrame) -> list[dict]:
                 "cashback": row["Кэшбэк"]
             }
         )
-
+    utils_logger.info(f"Функция get_cards выполнена успешно.")
     return cards
 
 
@@ -124,6 +130,7 @@ def get_top_transactions(transactions_df: DataFrame, count: int = 5) -> list[dic
     ]
     При этом учитываются только транзакции, завершенные успешно (Статус=ОК)
     """
+    utils_logger.info("Запуск функции get_top_transactions.")
     filtered_status_ok = transactions_df[transactions_df["Статус"] == "OK"]
     sorted_by_amount = filtered_status_ok.sort_values("Сумма операции с округлением", ascending=False)
     top = []
@@ -136,6 +143,7 @@ def get_top_transactions(transactions_df: DataFrame, count: int = 5) -> list[dic
                 "description": row["Описание"]
             }
         )
+    utils_logger.info("Функция get_top_transactions выполнена успешно.")
     return top
 
 
@@ -143,14 +151,19 @@ def get_currency_rate(currency: str) -> float:
     """Получает курс валюты от API и возвращает его в виде float"""
 
     url = f"https://api.apilayer.com/exchangerates_data/latest?base={currency}"
-    api_logger.info(f"Вызов метода GET по url = {url}")
+    utils_logger.info(f"Вызов метода GET по url = {url}")
     try:
-        response = requests.get(url, headers={'apikey': EXCHANGE_RATE_API_KEY}).json()
+        response = requests.get(url, headers={'apikey': EXCHANGE_RATE_API_KEY})
     except Exception as ex:
-        api_logger.error(f"При выполнения запроса возникла ошибка: {ex}", exc_info=True)
+        utils_logger.error(f"При выполнения запроса возникла ошибка: {ex}", exc_info=True)
+        raise ex
 
-    rate = response["rates"]["RUB"]
-    return float(rate)
+    if response.status_code == 200:
+        rate = response.json()["rates"]["RUB"]
+        return float(rate)
+    else:
+        utils_logger.error(f"Запрос вернул неверный статус - {response.status_code}")
+        return 0
 
 
 def get_currencies_rates(currencies: list) -> list[dict]:
@@ -167,7 +180,7 @@ def get_currencies_rates(currencies: list) -> list[dict]:
         }
     ]
     """
-
+    utils_logger.info("Запуск функции get_currencies_rates.")
     result = []
     for currency in currencies:
         result.append(
@@ -176,6 +189,7 @@ def get_currencies_rates(currencies: list) -> list[dict]:
                 "rate": round(get_currency_rate(currency), 2)
             }
         )
+    utils_logger.info("Функция get_currencies_rates выполнена успешно.")
     return result
 
 
@@ -187,15 +201,16 @@ def get_stock_price(ticker: str) -> float:
         "access_key": MARKET_STACK_API_KEY,
         "symbols": ticker
     }
-    api_logger.info(f"Вызов метода GET по url = {url}")
+    utils_logger.info(f"Вызов метода GET по url = {url}")
     try:
         response = requests.get(url, params=params)
     except Exception as ex:
-        api_logger.error(f"При выполнения запроса возникла ошибка: {ex}", exc_info=True)
+        utils_logger.error(f"При выполнения запроса возникла ошибка: {ex}", exc_info=True)
 
     if response.status_code == 200:
         return response.json().get('data', [{}])[0].get('close')
     else:
+        utils_logger.error(f"Запрос вернул неверный статус - {response.status_code}")
         return 0
 
 
@@ -214,6 +229,7 @@ def get_stock_prices(tickers: list[str]) -> list[dict]:
         ...
     ]
     """
+    utils_logger.info("Запуск функции get_stock_prices.")
     stock_prices = []
     for ticker in tickers:
         stock_prices.append(
@@ -222,6 +238,7 @@ def get_stock_prices(tickers: list[str]) -> list[dict]:
                 "price": get_stock_price(ticker)
             }
         )
+    utils_logger.info("Функция get_stock_prices выполнена успешно.")
     return stock_prices
 
 
@@ -235,4 +252,4 @@ if __name__ == "__main__":
     print(get_currencies_rates(['USD', 'EUR']))
     filtered = filter_transactions_by_date(df, "28.12.2021")
     print(filtered)
-    print(get_stock_price("AAPL"))
+    print(get_stock_price("MSFT"))
