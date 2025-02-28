@@ -29,24 +29,48 @@ def get_best_categories(data: list[dict], year: int, month: int) -> dict:
             "Категория 3": 500
         }
     """
-    df = pd.DataFrame(data)
-    _, last_day_month = calendar.monthrange(year, month)
-    date_str = datetime(year=year, month=month, day=last_day_month).strftime("%d.%m.%Y")
-    df["Дата операции"] = pd.to_datetime(df["Дата операции"], dayfirst=True)
+    first_day, last_day = calendar.monthrange(year, month)
+    date_begin = datetime(year=year, month=month, day=first_day)
+    date_end = datetime(year=year, month=month, day=last_day, hour=23, minute=59, second=59)
 
-    services_logger.info("Запущена фильтрация данных по дате filter_transactions_by_date")
-    filtered = filter_transactions_by_date(df, date_str)
-    services_logger.info("Фильтрация закончена.")
-    grouped_by_categories = filtered[
-        [
-            "Категория",
-            "Сумма операции с округлением"
-        ]
-    ].groupby("Категория", as_index=False).sum()
+    filtered_data = []
+    for transaction in data:
+        operation_date = datetime.strptime(transaction['Дата операции'], '%d.%m.%Y %H:%M:%S')
+        if (date_begin <= operation_date <= date_end
+                and transaction['Бонусы (включая кэшбэк)'] > 0
+                and transaction['Статус'] == "OK"
+        ):
+            filtered_data.append(transaction)
 
-    sorted_categories = grouped_by_categories.sort_values("Сумма операции с округлением", ascending=False)
     best_categories = {}
-    for index, row in sorted_categories.iterrows():
-        best_categories[row["Категория"]] = row["Сумма операции с округлением"]
+    for transaction in filtered_data:
+        category = transaction['Категория']
+        bonus = transaction['Бонусы (включая кэшбэк)']
+        if category in best_categories:
+            best_categories[category] += bonus
+        else:
+            best_categories[category] = bonus
+
+    best_categories = dict(sorted(best_categories.items(), key=lambda x: x[1], reverse=True))
+
+    # df = pd.DataFrame(data)
+    # _, last_day_month = calendar.monthrange(year, month)
+    # date_str = datetime(year=year, month=month, day=last_day_month).strftime("%d.%m.%Y")
+    # df["Дата операции"] = pd.to_datetime(df["Дата операции"], dayfirst=True)
+    #
+    # services_logger.info("Запущена фильтрация данных по дате filter_transactions_by_date")
+    # filtered = filter_transactions_by_date(df, date_str)
+    # services_logger.info("Фильтрация закончена.")
+    # grouped_by_categories = filtered[
+    #     [
+    #         "Категория",
+    #         "Сумма операции с округлением"
+    #     ]
+    # ].groupby("Категория", as_index=False).sum()
+    #
+    # sorted_categories = grouped_by_categories.sort_values("Сумма операции с округлением", ascending=False)
+    # best_categories = {}
+    # for index, row in sorted_categories.iterrows():
+    #     best_categories[row["Категория"]] = row["Сумма операции с округлением"]
 
     return best_categories
